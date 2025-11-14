@@ -51,6 +51,8 @@ export class CodexMcpClient {
     private conversationId: string | null = null;
     private handler: ((event: any) => void) | null = null;
     private permissionHandler: CodexPermissionHandler | null = null;
+    private processExitHandler: ((code: number | null, signal: NodeJS.Signals | null) => void) | null = null;
+    private processErrorHandler: ((error: Error) => void) | null = null;
 
     constructor() {
         this.client = new Client(
@@ -79,6 +81,36 @@ export class CodexMcpClient {
      */
     setPermissionHandler(handler: CodexPermissionHandler): void {
         this.permissionHandler = handler;
+    }
+
+    /**
+     * Set handler for subprocess exit events
+     */
+    setProcessExitHandler(handler: (code: number | null, signal: NodeJS.Signals | null) => void): void {
+        this.processExitHandler = handler;
+    }
+
+    /**
+     * Set handler for subprocess error events
+     */
+    setProcessErrorHandler(handler: (error: Error) => void): void {
+        this.processErrorHandler = handler;
+    }
+
+    /**
+     * Check if the subprocess is alive
+     */
+    isProcessAlive(): boolean {
+        const pid = this.transport?.pid;
+        if (!pid) return false;
+
+        try {
+            // Signal 0 checks if process exists without killing it
+            process.kill(pid, 0);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     async connect(): Promise<void> {
@@ -110,13 +142,30 @@ export class CodexMcpClient {
                 }, {} as Record<string, string>)
             });
 
+            // Set up subprocess health monitoring
+            this.transport.onerror = (error: Error) => {
+                logger.debug('[CodexMCP] Transport error:', error);
+                if (this.processErrorHandler) {
+                    this.processErrorHandler(error);
+                }
+            };
+
+            this.transport.onclose = () => {
+                logger.debug('[CodexMCP] Transport closed');
+                // Note: We can't get exit code/signal from StdioClientTransport's onclose
+                // but we can detect that the process has exited
+                if (this.processExitHandler) {
+                    this.processExitHandler(null, null);
+                }
+            };
+
             // Register request handlers for Codex permission methods
             this.registerPermissionHandlers();
 
             await this.client.connect(this.transport);
             this.connected = true;
 
-            logger.debug('[CodexMCP] Connected to Codex');
+            logger.debug('[CodexMCP] Connected to Codex, subprocess PID:', this.transport.pid);
         } finally {
             // Restore original process.type
             if (isWindows && !originalProcessType) {

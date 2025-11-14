@@ -343,6 +343,77 @@ export async function runCodex(opts: {
 
     const client = new CodexMcpClient();
 
+    // Track subprocess health for reconnection
+    let processUnexpectedlyExited = false;
+    let reconnectionAttempts = 0;
+    const MAX_RECONNECTION_ATTEMPTS = 3;
+
+    // Set up subprocess health monitoring
+    client.setProcessExitHandler((code, signal) => {
+        logger.debug(`[Codex] Subprocess exited: code=${code}, signal=${signal}`);
+        processUnexpectedlyExited = true;
+
+        // Don't reconnect if we're shutting down intentionally
+        if (shouldExit) {
+            logger.debug('[Codex] Subprocess exit expected during shutdown');
+            return;
+        }
+
+        logger.warn('[Codex] Subprocess exited unexpectedly, will attempt to reconnect on next message');
+    });
+
+    client.setProcessErrorHandler((error) => {
+        logger.warn('[Codex] Subprocess error:', error);
+        processUnexpectedlyExited = true;
+    });
+
+    // Helper: Reconnect to Codex subprocess with exponential backoff
+    async function ensureCodexConnection(): Promise<boolean> {
+        // Check if process is alive
+        if (client.isProcessAlive()) {
+            reconnectionAttempts = 0; // Reset on successful connection
+            return true;
+        }
+
+        // If process died, attempt reconnection
+        if (processUnexpectedlyExited) {
+            logger.debug(`[Codex] Attempting reconnection (attempt ${reconnectionAttempts + 1}/${MAX_RECONNECTION_ATTEMPTS})`);
+
+            if (reconnectionAttempts >= MAX_RECONNECTION_ATTEMPTS) {
+                logger.warn('[Codex] Max reconnection attempts reached, giving up');
+                processUnexpectedlyExited = false;
+                reconnectionAttempts = 0;
+                return false;
+            }
+
+            try {
+                // Exponential backoff: 1s, 2s, 4s
+                const backoffMs = Math.pow(2, reconnectionAttempts) * 1000;
+                logger.debug(`[Codex] Waiting ${backoffMs}ms before reconnection attempt`);
+                await delay(backoffMs);
+
+                // Disconnect old transport
+                await client.disconnect();
+
+                // Reconnect
+                await client.connect();
+
+                logger.debug('[Codex] Reconnection successful');
+                processUnexpectedlyExited = false;
+                reconnectionAttempts = 0;
+
+                // Note: Session state will be cleared by the caller
+                return true;
+            } catch (error) {
+                logger.warn(`[Codex] Reconnection attempt ${reconnectionAttempts + 1} failed:`, error);
+                reconnectionAttempts++;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Helper: find Codex session transcript for a given sessionId
     function findCodexResumeFile(sessionId: string | null): string | null {
         if (!sessionId) return null;
@@ -618,6 +689,21 @@ export async function runCodex(opts: {
             // Display user messages in the UI
             messageBuffer.addMessage(message.message, 'user');
             currentModeHash = message.hash;
+
+            // Ensure Codex subprocess is alive and reconnect if needed
+            const connectionOk = await ensureCodexConnection();
+            if (!connectionOk) {
+                messageBuffer.addMessage('Failed to connect to Codex after multiple attempts. Please try again later.', 'status');
+                pending = null;
+                continue;
+            }
+
+            // If we just reconnected, clear session state to force new session creation
+            if (processUnexpectedlyExited === false && reconnectionAttempts === 0 && !wasCreated) {
+                logger.debug('[Codex] Reconnection detected, clearing session state');
+                wasCreated = false;
+                currentModeHash = null;
+            }
 
             try {
                 // Map permission mode to approval policy and sandbox for startSession

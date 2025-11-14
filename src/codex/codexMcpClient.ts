@@ -87,23 +87,43 @@ export class CodexMcpClient {
         const mcpCommand = getCodexMcpCommand();
         logger.debug(`[CodexMCP] Connecting to Codex MCP server using command: codex ${mcpCommand}`);
 
-        this.transport = new StdioClientTransport({
-            command: 'codex',
-            args: [mcpCommand],
-            env: Object.keys(process.env).reduce((acc, key) => {
-                const value = process.env[key];
-                if (typeof value === 'string') acc[key] = value;
-                return acc;
-            }, {} as Record<string, string>)
-        });
+        // WORKAROUND: Force windowsHide on Windows platforms
+        // The MCP SDK only sets windowsHide: true when running in Electron,
+        // but we need it for all Windows processes to prevent CMD windows from appearing.
+        // We temporarily set process.type which makes the SDK think we're in Electron.
+        // TODO: Submit PR to @modelcontextprotocol/sdk to always hide windows on Windows
+        const originalProcessType = (process as any).type;
+        const isWindows = process.platform === 'win32';
+        if (isWindows && !originalProcessType) {
+            (process as any).type = 'node';  // Trick SDK into enabling windowsHide
+            logger.debug('[CodexMCP] Temporarily set process.type to enable windowsHide on Windows');
+        }
 
-        // Register request handlers for Codex permission methods
-        this.registerPermissionHandlers();
+        try {
+            this.transport = new StdioClientTransport({
+                command: 'codex',
+                args: [mcpCommand],
+                env: Object.keys(process.env).reduce((acc, key) => {
+                    const value = process.env[key];
+                    if (typeof value === 'string') acc[key] = value;
+                    return acc;
+                }, {} as Record<string, string>)
+            });
 
-        await this.client.connect(this.transport);
-        this.connected = true;
+            // Register request handlers for Codex permission methods
+            this.registerPermissionHandlers();
 
-        logger.debug('[CodexMCP] Connected to Codex');
+            await this.client.connect(this.transport);
+            this.connected = true;
+
+            logger.debug('[CodexMCP] Connected to Codex');
+        } finally {
+            // Restore original process.type
+            if (isWindows && !originalProcessType) {
+                delete (process as any).type;
+                logger.debug('[CodexMCP] Restored process.type');
+            }
+        }
     }
 
     private registerPermissionHandlers(): void {

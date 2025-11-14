@@ -32,7 +32,7 @@ type ReadyEventOptions = {
     pending: unknown;
     queueSize: () => number;
     shouldExit: boolean;
-    sendReady: () => void;
+    sendReady: () => void | Promise<void>;
     notify?: () => void;
 };
 
@@ -51,7 +51,11 @@ export function emitReadyIfIdle({ pending, queueSize, shouldExit, sendReady, not
         return false;
     }
 
-    sendReady();
+    // sendReady might be async, handle both cases
+    const result = sendReady();
+    if (result instanceof Promise) {
+        result.catch((err: Error) => logger.debug('[Codex] Failed to send ready event:', err));
+    }
     notify?.();
     return true;
 }
@@ -184,8 +188,8 @@ export async function runCodex(opts: {
         session.keepAlive(thinking, 'remote');
     }, 2000);
 
-    const sendReady = () => {
-        session.sendSessionEvent({ type: 'ready' });
+    const sendReady = async () => {
+        await session.sendSessionEvent({ type: 'ready' });
         try {
             api.push().sendToAllDevices(
                 "It's ready!",
@@ -413,10 +417,10 @@ export async function runCodex(opts: {
             messageBuffer.addMessage('Starting task...', 'status');
         } else if (msg.type === 'task_complete') {
             messageBuffer.addMessage('Task completed', 'status');
-            sendReady();
+            sendReady().catch(err => logger.debug('[Codex] Failed to send ready event:', err));
         } else if (msg.type === 'turn_aborted') {
             messageBuffer.addMessage('Turn aborted', 'status');
-            sendReady();
+            sendReady().catch(err => logger.debug('[Codex] Failed to send ready event:', err));
         }
 
         if (msg.type === 'task_started') {
@@ -689,7 +693,7 @@ export async function runCodex(opts: {
                 
                 if (isAbortError) {
                     messageBuffer.addMessage('Aborted by user', 'status');
-                    session.sendSessionEvent({ type: 'message', message: 'Aborted by user' });
+                    session.sendSessionEvent({ type: 'message', message: 'Aborted by user' }).catch(err => logger.debug('[Codex] Failed to send abort event:', err));
                     // Session was already stored in handleAbort(), no need to store again
                     // Mark session as not created to force proper resume on next message
                     wasCreated = false;
@@ -697,7 +701,7 @@ export async function runCodex(opts: {
                     logger.debug('[Codex] Marked session as not created after abort for proper resume');
                 } else {
                     messageBuffer.addMessage('Process exited unexpectedly', 'status');
-                    session.sendSessionEvent({ type: 'message', message: 'Process exited unexpectedly' });
+                    session.sendSessionEvent({ type: 'message', message: 'Process exited unexpectedly' }).catch(err => logger.debug('[Codex] Failed to send exit event:', err));
                     // For unexpected exits, try to store session for potential recovery
                     if (client.hasActiveSession()) {
                         storedSessionIdForResume = client.storeSessionForResume();

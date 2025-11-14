@@ -373,7 +373,7 @@ export async function claudeRemoteLauncher(session: Session): Promise<'switch' |
                     onMessage,
                     onCompletionEvent: (message: string) => {
                         logger.debug(`[remote]: Completion event: ${message}`);
-                        session.client.sendSessionEvent({ type: 'message', message });
+                        session.client.sendSessionEvent({ type: 'message', message }).catch(err => logger.debug('[Claude] Failed to send completion event:', err));
                     },
                     onSessionReset: () => {
                         logger.debug('[remote]: Session reset');
@@ -381,7 +381,7 @@ export async function claudeRemoteLauncher(session: Session): Promise<'switch' |
                     },
                     onReady: () => {
                         if (!pending && session.queue.size() === 0) {
-                            session.client.sendSessionEvent({ type: 'ready' });
+                            session.client.sendSessionEvent({ type: 'ready' }).catch(err => logger.debug('[Claude] Failed to send ready event:', err));
                             session.api.push().sendToAllDevices(
                                 'It\'s ready!',
                                 `Claude is waiting for your command`,
@@ -396,12 +396,12 @@ export async function claudeRemoteLauncher(session: Session): Promise<'switch' |
                 session.consumeOneTimeFlags();
                 
                 if (!exitReason && abortController.signal.aborted) {
-                    session.client.sendSessionEvent({ type: 'message', message: 'Aborted by user' });
+                    session.client.sendSessionEvent({ type: 'message', message: 'Aborted by user' }).catch(err => logger.debug('[Claude] Failed to send abort event:', err));
                 }
             } catch (e) {
                 logger.debug('[remote]: launch error', e);
                 if (!exitReason) {
-                    session.client.sendSessionEvent({ type: 'message', message: 'Process exited unexpectedly' });
+                    session.client.sendSessionEvent({ type: 'message', message: 'Process exited unexpectedly' }).catch(err => logger.debug('[Claude] Failed to send exit event:', err));
                     continue;
                 }
             } finally {

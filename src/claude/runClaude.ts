@@ -352,7 +352,7 @@ export async function runClaude(credentials: Credentials, options: StartOptions 
         api,
         allowedTools: happyServer.toolNames.map(toolName => `mcp__happy__${toolName}`),
         onModeChange: (newMode) => {
-            session.sendSessionEvent({ type: 'switch', mode: newMode });
+            session.sendSessionEvent({ type: 'switch', mode: newMode }).catch(err => logger.debug('[Claude] Failed to send mode change event:', err));
             session.updateAgentState((currentState) => ({
                 ...currentState,
                 controlledByUser: newMode === 'local'

@@ -115,7 +115,7 @@ export async function claudeLocalLauncher(session: Session): Promise<'switch' | 
             } catch (e) {
                 logger.debug('[local]: launch error', e);
                 if (!exitReason) {
-                    session.client.sendSessionEvent({ type: 'message', message: 'Process exited unexpectedly' });
+                    session.client.sendSessionEvent({ type: 'message', message: 'Process exited unexpectedly' }).catch(err => logger.debug('[Claude] Failed to send exit event:', err));
                     continue;
                 } else {
                     break;

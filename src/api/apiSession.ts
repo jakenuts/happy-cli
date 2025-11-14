@@ -26,6 +26,8 @@ export class ApiSessionClient extends EventEmitter {
     private metadataLock = new AsyncLock();
     private encryptionKey: Uint8Array;
     private encryptionVariant: 'legacy' | 'dataKey';
+    private connectionPromise: Promise<void> | null = null;
+    private connectionResolve: (() => void) | null = null;
 
     constructor(token: string, session: Session) {
         super()
@@ -74,6 +76,11 @@ export class ApiSessionClient extends EventEmitter {
         this.socket.on('connect', () => {
             logger.debug('Socket connected successfully');
             this.rpcHandlerManager.onSocketConnect(this.socket);
+            // Resolve the connection promise when socket connects
+            if (this.connectionResolve) {
+                this.connectionResolve();
+                this.connectionResolve = null;
+            }
         })
 
         // Set up global RPC request handler
@@ -146,17 +153,59 @@ export class ApiSessionClient extends EventEmitter {
         });
 
         //
-        // Connect (after short delay to give a time to add handlers)
+        // Don't auto-connect - wait for ensureConnected() to be called
+        // This prevents race conditions where messages arrive before handlers are registered
         //
-
-        this.socket.connect();
     }
 
-    onUserMessage(callback: (data: UserMessage) => void) {
+    /**
+     * Ensure the socket is connected. Returns a promise that resolves when connected.
+     * Safe to call multiple times - subsequent calls return the same promise.
+     */
+    async ensureConnected(): Promise<void> {
+        if (this.socket.connected) {
+            return Promise.resolve();
+        }
+
+        if (this.connectionPromise) {
+            return this.connectionPromise;
+        }
+
+        this.connectionPromise = new Promise<void>((resolve, reject) => {
+            this.connectionResolve = resolve;
+
+            // Set timeout for connection
+            const timeout = setTimeout(() => {
+                this.connectionResolve = null;
+                this.connectionPromise = null;
+                reject(new Error('Socket connection timeout after 10s'));
+            }, 10000);
+
+            // Clear timeout when connected
+            const originalResolve = this.connectionResolve;
+            this.connectionResolve = () => {
+                clearTimeout(timeout);
+                originalResolve?.();
+            };
+
+            logger.debug('[API] Initiating socket connection...');
+            this.socket.connect();
+        });
+
+        return this.connectionPromise;
+    }
+
+    async onUserMessage(callback: (data: UserMessage) => void) {
+        // Set callback first, before connecting
         this.pendingMessageCallback = callback;
+
+        // Drain any messages that arrived during construction
         while (this.pendingMessages.length > 0) {
             callback(this.pendingMessages.shift()!);
         }
+
+        // Now establish connection - messages will flow directly to callback
+        await this.ensureConnected();
     }
 
     /**
@@ -239,7 +288,7 @@ export class ApiSessionClient extends EventEmitter {
         });
     }
 
-    sendSessionEvent(event: {
+    async sendSessionEvent(event: {
         type: 'switch', mode: 'local' | 'remote'
     } | {
         type: 'message', message: string
@@ -248,6 +297,8 @@ export class ApiSessionClient extends EventEmitter {
     } | {
         type: 'ready'
     }, id?: string) {
+        await this.ensureConnected();
+
         let content = {
             role: 'agent',
             content: {

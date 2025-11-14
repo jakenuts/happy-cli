@@ -11,7 +11,9 @@ import { ElicitRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { CodexPermissionHandler } from './utils/permissionHandler';
 import { execSync } from 'child_process';
 
-const DEFAULT_TIMEOUT = 14 * 24 * 60 * 60 * 1000; // 14 days, which is the half of the maximum possible timeout (~28 days for int32 value in NodeJS)
+// Timeout for MCP operations - 5 minutes is reasonable for most Codex operations
+// Previous value was 14 days which could cause indefinite hangs
+const DEFAULT_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Get the correct MCP subcommand based on installed codex version

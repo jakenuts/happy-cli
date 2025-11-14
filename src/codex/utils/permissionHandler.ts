@@ -9,6 +9,9 @@ import { logger } from "@/ui/logger";
 import { ApiSessionClient } from "@/api/apiSession";
 import { AgentState } from "@/api/types";
 
+// Timeout for permission requests - 2 minutes should be enough for user to respond
+const PERMISSION_TIMEOUT = 2 * 60 * 1000; // 2 minutes
+
 interface PermissionResponse {
     id: string;
     approved: boolean;
@@ -20,6 +23,7 @@ interface PendingRequest {
     reject: (error: Error) => void;
     toolName: string;
     input: unknown;
+    timeoutId: NodeJS.Timeout;
 }
 
 interface PermissionResult {
@@ -48,12 +52,45 @@ export class CodexPermissionHandler {
         input: unknown
     ): Promise<PermissionResult> {
         return new Promise<PermissionResult>((resolve, reject) => {
+            // Set timeout for permission request
+            const timeoutId = setTimeout(() => {
+                const pending = this.pendingRequests.get(toolCallId);
+                if (pending) {
+                    this.pendingRequests.delete(toolCallId);
+                    logger.warn(`[Codex] Permission request timed out for ${toolName} (${toolCallId})`);
+
+                    // Update agent state to mark as timed out
+                    this.session.updateAgentState((currentState) => {
+                        const request = currentState.requests?.[toolCallId];
+                        if (!request) return currentState;
+
+                        const { [toolCallId]: _, ...remainingRequests } = currentState.requests || {};
+                        return {
+                            ...currentState,
+                            requests: remainingRequests,
+                            completedRequests: {
+                                ...currentState.completedRequests,
+                                [toolCallId]: {
+                                    ...request,
+                                    completedAt: Date.now(),
+                                    status: 'canceled',
+                                    reason: 'Permission request timed out'
+                                }
+                            }
+                        };
+                    });
+
+                    reject(new Error(`Permission request timed out after ${PERMISSION_TIMEOUT / 1000}s`));
+                }
+            }, PERMISSION_TIMEOUT);
+
             // Store the pending request
             this.pendingRequests.set(toolCallId, {
                 resolve,
                 reject,
                 toolName,
-                input
+                input,
+                timeoutId
             });
 
             // Send push notification
@@ -100,6 +137,9 @@ export class CodexPermissionHandler {
                     return;
                 }
 
+                // Clear the timeout
+                clearTimeout(pending.timeoutId);
+
                 // Remove from pending
                 this.pendingRequests.delete(response.id);
 
@@ -145,8 +185,9 @@ export class CodexPermissionHandler {
      * Reset state for new sessions
      */
     reset(): void {
-        // Reject all pending requests
+        // Reject all pending requests and clear timeouts
         for (const [id, pending] of this.pendingRequests.entries()) {
+            clearTimeout(pending.timeoutId);
             pending.reject(new Error('Session reset'));
         }
         this.pendingRequests.clear();

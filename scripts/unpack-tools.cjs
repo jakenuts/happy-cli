@@ -8,8 +8,16 @@
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
-const tar = require('tar');
 const os = require('os');
+
+// Lazy load tar - it might not be available during initial npm install
+let tar;
+try {
+    tar = require('tar');
+} catch (e) {
+    // tar not available yet - will be handled later
+    tar = null;
+}
 
 /**
  * Get the platform-specific directory name
@@ -68,12 +76,16 @@ function areToolsUnpacked(toolsDir) {
  * Unpack a tar.gz archive to a destination directory
  */
 async function unpackArchive(archivePath, destDir) {
+    if (!tar) {
+        throw new Error('tar module not available - dependencies may not be installed yet');
+    }
+
     return new Promise((resolve, reject) => {
         // Ensure destination directory exists
         if (!fs.existsSync(destDir)) {
             fs.mkdirSync(destDir, { recursive: true });
         }
-        
+
         // Create read stream and extract
         fs.createReadStream(archivePath)
             .pipe(zlib.createGunzip())
@@ -110,37 +122,44 @@ async function unpackTools() {
         const toolsDir = getToolsDir();
         const archivesDir = path.join(toolsDir, 'archives');
         const unpackedPath = path.join(toolsDir, 'unpacked');
-        
+
         // Check if already unpacked
         if (areToolsUnpacked(toolsDir)) {
             console.log(`Tools already unpacked for ${platformDir}`);
             return { success: true, alreadyUnpacked: true };
         }
-        
+
+        // Check if tar module is available
+        if (!tar) {
+            console.log('Skipping tool unpacking - tar module not yet available');
+            console.log('Tools will be unpacked on first use or by running: node scripts/unpack-tools.cjs');
+            return { success: true, skipped: true };
+        }
+
         console.log(`Unpacking tools for ${platformDir}...`);
-        
+
         // Create unpacked directory
         if (!fs.existsSync(unpackedPath)) {
             fs.mkdirSync(unpackedPath, { recursive: true });
         }
-        
+
         // Unpack difftastic
         const difftasticArchive = path.join(archivesDir, `difftastic-${platformDir}.tar.gz`);
         if (!fs.existsSync(difftasticArchive)) {
             throw new Error(`Archive not found: ${difftasticArchive}`);
         }
         await unpackArchive(difftasticArchive, unpackedPath);
-        
+
         // Unpack ripgrep
         const ripgrepArchive = path.join(archivesDir, `ripgrep-${platformDir}.tar.gz`);
         if (!fs.existsSync(ripgrepArchive)) {
             throw new Error(`Archive not found: ${ripgrepArchive}`);
         }
         await unpackArchive(ripgrepArchive, unpackedPath);
-        
+
         console.log(`Tools unpacked successfully to ${unpackedPath}`);
         return { success: true, alreadyUnpacked: false };
-        
+
     } catch (error) {
         console.error('Failed to unpack tools:', error.message);
         throw error;
@@ -154,10 +173,21 @@ module.exports = { unpackTools, getPlatformDir, getToolsDir };
 if (require.main === module) {
     unpackTools()
         .then(result => {
-            process.exit(0);
+            if (result.skipped) {
+                // Don't fail installation if tar is not available yet
+                process.exit(0);
+            } else {
+                process.exit(0);
+            }
         })
         .catch(error => {
-            console.error('Error:', error);
-            process.exit(1);
+            // Only exit with error if it's not a tar availability issue
+            if (error.message && error.message.includes('tar module not available')) {
+                console.log('Note: Tool unpacking deferred until dependencies are installed');
+                process.exit(0);
+            } else {
+                console.error('Error:', error);
+                process.exit(1);
+            }
         });
 }

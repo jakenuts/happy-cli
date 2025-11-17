@@ -19,6 +19,12 @@ import { resolve } from 'path';
 const distDir = 'dist';
 const isGitHubInstall = !existsSync(resolve('node_modules/typescript'));
 
+// If dist exists and we're doing a GitHub install, skip the build entirely
+if (existsSync(distDir) && isGitHubInstall) {
+  console.log('Dist folder already exists (GitHub install) - skipping build');
+  process.exit(0);
+}
+
 // Remove dist directory if it exists (cross-platform)
 if (existsSync(distDir)) {
   console.log('Cleaning dist directory...');

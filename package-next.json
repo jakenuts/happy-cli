@@ -1,7 +1,7 @@
 {
-  "name": "happy-coder",
+  "name": "happy-next",
   "version": "0.11.3-preview.4",
-  "description": "Mobile and Web client for Claude Code and Codex",
+  "description": "Mobile and Web client for Claude Code and Codex - Preview Release",
   "author": "Kirill Dubovitskiy",
   "license": "MIT",
   "type": "module",
@@ -9,8 +9,8 @@
   "bugs": "https://github.com/slopus/happy-cli/issues",
   "repository": "slopus/happy-cli",
   "bin": {
-    "happy": "./bin/happy.mjs",
-    "happy-mcp": "./bin/happy-mcp.mjs"
+    "happy-next": "./bin/happy.mjs",
+    "happy-next-mcp": "./bin/happy-mcp.mjs"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",

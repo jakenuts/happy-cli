@@ -2,7 +2,7 @@
 *-error.log
 **/.DS_Store
 /.idea
-/dist
+# /dist - Committing dist for GitHub installs
 /tmp
 /node_modules
 oclif.manifest.json

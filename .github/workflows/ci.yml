@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [20, 22]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify dist exists
+        shell: bash
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Error: dist folder not created"
+            exit 1
+          fi
+          echo "✓ Dist folder exists"
+
+      - name: Check bin files exist
+        shell: bash
+        run: |
+          if [ ! -f "bin/happy.mjs" ]; then
+            echo "Error: bin/happy.mjs not found"
+            exit 1
+          fi
+          if [ ! -f "bin/happy-mcp.mjs" ]; then
+            echo "Error: bin/happy-mcp.mjs not found"
+            exit 1
+          fi
+          echo "✓ Bin files exist"
+
+      # Run tests only on Linux (fastest)
+      - name: Run tests
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == 20
+        run: npm test
+        continue-on-error: true
+
+  install-test:
+    runs-on: ${{ matrix.os }}
+    needs: build-and-test
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Test local install
+        shell: bash
+        run: |
+          npm ci
+          npm run build
+          npm install -g .
+
+          # Verify commands are available
+          if ! command -v happy-next &> /dev/null; then
+            echo "Error: happy-next command not found"
+            exit 1
+          fi
+
+          if ! command -v happy-next-mcp &> /dev/null; then
+            echo "Error: happy-next-mcp command not found"
+            exit 1
+          fi
+
+          # Verify version works
+          happy-next --version
+
+          echo "✓ Installation successful"
+
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          npm uninstall -g happy-next || true

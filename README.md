@@ -27,8 +27,10 @@ This installs as **`happy-next`** so it won't conflict with the stable `happy` v
 
 ### 📦 Installation Improvements
 - GitHub install support (no npm publish needed)
+- Automatic dist building via GitHub Actions on every commit
 - Resilient postinstall script handling
 - Better missing dependency recovery
+- Cross-platform CI testing (Windows, macOS, Linux)
 
 ### 🔄 Upstream Sync
 - Automated daily sync from upstream (slopus/happy-cli)

@@ -42,7 +42,7 @@ function _interopNamespaceDefault(e) {
 var z__namespace = /*#__PURE__*/_interopNamespaceDefault(z);
 
 var name = "happy-next";
-var version = "0.11.3-preview.5";
+var version = "0.11.3-preview.7";
 var description = "Mobile and Web client for Claude Code and Codex - Preview Fork";
 var author = "Kirill Dubovitskiy";
 var license = "MIT";
@@ -1021,7 +1021,7 @@ class RpcHandlerManager {
   }
 }
 
-const __dirname$1 = path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('types-QJg7LeZh.cjs', document.baseURI).href))));
+const __dirname$1 = path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('types-CxUnaIrU.cjs', document.baseURI).href))));
 function projectPath() {
   const path$1 = path.resolve(__dirname$1, "..");
   return path$1;

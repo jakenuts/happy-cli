@@ -21,7 +21,7 @@ import { platform } from 'os';
 import { Expo } from 'expo-server-sdk';
 
 var name = "happy-next";
-var version = "0.11.3-preview.5";
+var version = "0.11.3-preview.7";
 var description = "Mobile and Web client for Claude Code and Codex - Preview Fork";
 var author = "Kirill Dubovitskiy";
 var license = "MIT";

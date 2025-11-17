@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import os$1, { homedir } from 'node:os';
 import { randomUUID, randomBytes } from 'node:crypto';
-import { l as logger, p as projectPath, e as backoff, d as delay, R as RawJSONLinesSchema, f as AsyncLock, c as configuration, g as readDaemonState, h as clearDaemonState, b as packageJson, r as readSettings, i as readCredentials, j as encodeBase64, u as updateSettings, k as encodeBase64Url, m as decodeBase64, w as writeCredentialsLegacy, n as writeCredentialsDataKey, o as acquireDaemonLock, q as writeDaemonState, A as ApiClient, s as releaseDaemonLock, t as clearCredentials, v as clearMachineId, x as getLatestDaemonLog } from './types-B6U1wuBR.mjs';
+import { l as logger, p as projectPath, e as backoff, d as delay, R as RawJSONLinesSchema, f as AsyncLock, c as configuration, g as readDaemonState, h as clearDaemonState, b as packageJson, r as readSettings, i as readCredentials, j as encodeBase64, u as updateSettings, k as encodeBase64Url, m as decodeBase64, w as writeCredentialsLegacy, n as writeCredentialsDataKey, o as acquireDaemonLock, q as writeDaemonState, A as ApiClient, s as releaseDaemonLock, t as clearCredentials, v as clearMachineId, x as getLatestDaemonLog } from './types--wrXEzii.mjs';
 import { spawn, execSync, execFileSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -5794,7 +5794,7 @@ async function handleConnectVendor(vendor, displayName) {
     return;
   } else if (subcommand === "codex") {
     try {
-      const { runCodex } = await import('./runCodex-DrPAcday.mjs');
+      const { runCodex } = await import('./runCodex-CiBG9kDb.mjs');
       let startedBy = void 0;
       for (let i = 1; i < args.length; i++) {
         if (args[i] === "--started-by") {

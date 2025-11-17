@@ -3,7 +3,7 @@
 var chalk = require('chalk');
 var os = require('node:os');
 var node_crypto = require('node:crypto');
-var types = require('./types-QJg7LeZh.cjs');
+var types = require('./types-CxUnaIrU.cjs');
 var node_child_process = require('node:child_process');
 var node_path = require('node:path');
 var node_readline = require('node:readline');
@@ -981,7 +981,7 @@ class AbortError extends Error {
   }
 }
 
-const __filename$1 = node_url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index-CcjVa7OK.cjs', document.baseURI).href)));
+const __filename$1 = node_url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index-B_BpDA80.cjs', document.baseURI).href)));
 const __dirname$1 = node_path.join(__filename$1, "..");
 function getDefaultClaudeCodePath() {
   return node_path.join(__dirname$1, "..", "..", "..", "node_modules", "@anthropic-ai", "claude-code", "cli.js");
@@ -5816,7 +5816,7 @@ async function handleConnectVendor(vendor, displayName) {
     return;
   } else if (subcommand === "codex") {
     try {
-      const { runCodex } = await Promise.resolve().then(function () { return require('./runCodex-CRpVyA_X.cjs'); });
+      const { runCodex } = await Promise.resolve().then(function () { return require('./runCodex-CuKGnnsc.cjs'); });
       let startedBy = void 0;
       for (let i = 1; i < args.length; i++) {
         if (args[i] === "--started-by") {

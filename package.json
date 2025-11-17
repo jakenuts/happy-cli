@@ -60,7 +60,7 @@
     "build": "node scripts/build.mjs",
     "build:dev": "shx rm -rf dist && npx tsc --noEmit && pkgroll",
     "test": "npm run build && tsx --env-file .env.integration-test node_modules/.bin/vitest run",
-    "start": "npm run build && ./bin/happy.mjs",
+    "start": "npm run build && ./bin/happy-next.mjs",
     "dev": "tsx src/index.ts",
     "dev:local-server": "npm run build && tsx --env-file .env.dev-local-server src/index.ts",
     "dev:integration-test-env": "npm run build && tsx --env-file .env.integration-test src/index.ts",

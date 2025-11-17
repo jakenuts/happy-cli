@@ -1,0 +1,172 @@
+name: Sync from Upstream
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/slopus/happy-cli.git || true
+          git fetch upstream
+
+      - name: Check for upstream changes
+        id: check
+        run: |
+          # Get the latest commit from upstream main
+          UPSTREAM_COMMIT=$(git rev-parse upstream/main)
+          # Get the latest commit we've merged from upstream (if any)
+          LAST_SYNC=$(git log --grep="Sync from upstream" --format="%H" -n 1 || echo "")
+
+          if [ -z "$LAST_SYNC" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "No previous sync found"
+          else
+            # Check if there are new commits
+            NEW_COMMITS=$(git rev-list $LAST_SYNC..upstream/main --count)
+            if [ "$NEW_COMMITS" -gt 0 ]; then
+              echo "has_changes=true" >> $GITHUB_OUTPUT
+              echo "Found $NEW_COMMITS new commits"
+            else
+              echo "has_changes=false" >> $GITHUB_OUTPUT
+              echo "No new commits"
+            fi
+          fi
+
+      - name: Attempt automatic merge
+        if: steps.check.outputs.has_changes == 'true'
+        id: merge
+        run: |
+          # Try to merge upstream/main into current branch
+          if git merge upstream/main --no-edit -m "chore: sync from upstream slopus/happy-cli"; then
+            echo "merge_success=true" >> $GITHUB_OUTPUT
+            echo "Merge successful"
+          else
+            echo "merge_success=false" >> $GITHUB_OUTPUT
+            echo "Merge conflicts detected"
+            git merge --abort
+          fi
+
+      - name: Push changes
+        if: steps.check.outputs.has_changes == 'true' && steps.merge.outputs.merge_success == 'true'
+        run: |
+          git push origin main
+          echo "Changes pushed successfully"
+
+      - name: Create issue for merge conflicts
+        if: steps.check.outputs.has_changes == 'true' && steps.merge.outputs.merge_success == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'upstream-sync'
+            });
+
+            // Don't create duplicate issues
+            if (issues.length > 0) {
+              console.log('Issue already exists for upstream sync conflicts');
+              return;
+            }
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Manual intervention needed: Upstream sync has conflicts',
+              labels: ['upstream-sync', 'needs-attention'],
+              body: `The automatic sync from upstream (slopus/happy-cli) has merge conflicts.
+
+**Manual steps required:**
+
+\`\`\`bash
+# Fetch latest from upstream
+git fetch upstream
+
+# Attempt merge
+git merge upstream/main
+
+# Resolve conflicts manually, then:
+git add .
+git commit -m "chore: sync from upstream (resolved conflicts)"
+git push origin main
+\`\`\`
+
+**Alternative - Rebase approach:**
+
+\`\`\`bash
+# Create a new branch for the sync
+git checkout -b sync-upstream-$(date +%Y%m%d)
+git fetch upstream
+git rebase upstream/main
+
+# Resolve conflicts, then:
+git rebase --continue
+git push origin sync-upstream-$(date +%Y%m%d)
+
+# Create PR to merge into main
+\`\`\`
+
+This issue will be automatically closed when the next automatic sync succeeds.
+`
+            });
+
+      - name: Close resolved sync issues
+        if: steps.check.outputs.has_changes == 'true' && steps.merge.outputs.merge_success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'upstream-sync'
+            });
+
+            for (const issue of issues) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: 'Sync from upstream succeeded. Closing this issue.'
+              });
+            }
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.check.outputs.has_changes }}" == "false" ]; then
+            echo "✓ No new changes from upstream" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.merge.outputs.merge_success }}" == "true" ]; then
+            echo "✓ Successfully merged changes from upstream" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Merge conflicts detected - manual intervention required" >> $GITHUB_STEP_SUMMARY
+          fi

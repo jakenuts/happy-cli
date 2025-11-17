@@ -98,6 +98,33 @@ DRY_RUN=1 ./scripts/publish-next.sh
 - Published under the `preview` tag (not `latest`)
 - Automatically restores package.json even if publish fails
 
+### sync-upstream.sh
+
+Syncs changes from upstream slopus/happy-cli repository into your fork.
+
+**Usage:**
+```bash
+# Preview what would be synced (no changes made)
+./scripts/sync-upstream.sh --dry-run
+
+# Sync changes from upstream
+./scripts/sync-upstream.sh
+```
+
+**What it does:**
+1. Checks for uncommitted changes (blocks if found)
+2. Fetches latest from upstream
+3. Shows commits and files that will change
+4. Attempts automatic merge
+5. Prompts to push if successful
+6. Provides conflict resolution instructions if needed
+
+**Notes:**
+- Requires clean working directory
+- Interactive - prompts for confirmation
+- Safe to run anytime
+- Also automated via GitHub Actions (daily at 2 AM UTC)
+
 ### unpack-tools.cjs
 
 Internal script called during npm install to unpack platform-specific binaries (ripgrep, etc.) from tar archives in the `tools/` directory.
@@ -114,6 +141,28 @@ node scripts/unpack-tools.cjs
 ```
 
 ## Common Workflows
+
+### Syncing from Upstream
+
+Keep your fork up-to-date with slopus/happy-cli:
+
+```bash
+# Check what would be synced (safe, no changes)
+./scripts/sync-upstream.sh --dry-run
+
+# Sync changes
+./scripts/sync-upstream.sh
+
+# Manual sync if needed
+git fetch upstream
+git merge upstream/main
+```
+
+**Automatic sync:**
+- GitHub Actions runs daily at 2 AM UTC
+- Auto-merges if no conflicts
+- Creates issue if conflicts detected
+- Issue auto-closes when resolved
 
 ### Publishing a Preview Release
 

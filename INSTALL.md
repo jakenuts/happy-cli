@@ -9,8 +9,10 @@ npm install -g github:jakenuts/happy-cli#latest-preview
 ```
 
 This gives you:
-- `happy` - Main CLI command
-- `happy-mcp` - MCP server command
+- `happy-next` - Main CLI command
+- `happy-next-mcp` - MCP server command
+
+**Note:** This installs as `happy-next` so it won't conflict with the stable `happy` version from the upstream repo.
 
 ## Install Specific Version
 
@@ -18,33 +20,40 @@ This gives you:
 # Install specific preview version
 npm install -g github:jakenuts/happy-cli#v0.11.3-preview.5
 
-# Install from main branch
-npm install -g github:jakenuts/happy-cli#main
+# Install from a specific tag
+npm install -g github:jakenuts/happy-cli#latest-preview
 ```
 
 ## Verify Installation
 
 ```powershell
 # Check version
-happy --version
+happy-next --version
 
 # Check daemon status
-happy daemon status
+happy-next daemon status
 
 # Start daemon
-happy daemon start
+happy-next daemon start
 ```
 
-## From NPM (Once Published)
+## Side-by-Side with Stable
 
-When published to npm:
+You can install both the stable upstream version and this preview fork:
 
 ```powershell
-# Install stable
-npm install -g happy-coder
+# Install stable from upstream (slopus/happy-cli)
+npm install -g github:slopus/happy-cli
 
-# Install preview (side-by-side with stable)
-npm install -g happy-next
+# Install preview fork (jakenuts/happy-cli)
+npm install -g github:jakenuts/happy-cli#latest-preview
+
+# Use either version
+happy --version           # Stable (upstream)
+happy-next --version      # Preview (fork)
+
+happy daemon start        # Stable daemon
+happy-next daemon start   # Preview daemon
 ```
 
 ## Troubleshooting
@@ -56,7 +65,7 @@ This is usually a transient network issue downloading binaries. Try:
 2. Clear npm cache: `npm cache clean --force`
 3. Try again
 
-### "happy command not found"
+### "happy-next command not found"
 
 Ensure npm's global bin directory is in your PATH:
 
@@ -81,7 +90,7 @@ If not in PATH, add it:
 
 ```powershell
 # Uninstall current version
-npm uninstall -g happy-coder
+npm uninstall -g happy-next
 
 # Install latest
 npm install -g github:jakenuts/happy-cli#latest-preview
@@ -99,7 +108,7 @@ npm run build
 npm install -g .
 
 # Test it works
-happy --version
+happy-next --version
 ```
 
 ## Repository Information
@@ -110,15 +119,16 @@ happy --version
 
 ## What's Installed
 
-When you install Happy CLI, you get:
+When you install Happy CLI Next (preview fork), you get:
 
 1. **Commands:**
-   - `happy` - Main CLI
-   - `happy-mcp` - MCP server for Claude integration
+   - `happy-next` - Main CLI
+   - `happy-next-mcp` - MCP server for Claude integration
 
 2. **Config Directory:**
    - `~/.happy-dev/` (or `$HAPPY_HOME_DIR`)
    - Contains logs, daemon PID, access keys
+   - **Shared with stable version** if both are installed
 
 3. **Dependencies:**
    - Claude Code SDK (2.0.24)
@@ -127,7 +137,17 @@ When you install Happy CLI, you get:
 ## Uninstall
 
 ```powershell
-npm uninstall -g happy-coder
+npm uninstall -g happy-next
 ```
 
 This removes the commands but leaves your config directory (`~/.happy-dev/`) intact.
+
+## Comparison: Stable vs Preview
+
+| Feature | Stable (`happy`) | Preview Fork (`happy-next`) |
+|---------|------------------|---------------------------|
+| Source | slopus/happy-cli | jakenuts/happy-cli |
+| Install | `npm install -g github:slopus/happy-cli` | `npm install -g github:jakenuts/happy-cli#latest-preview` |
+| Commands | `happy`, `happy-mcp` | `happy-next`, `happy-next-mcp` |
+| Updates | Upstream releases | Daily synced + fork features |
+| Use Case | Stable production use | Testing new features, Codex improvements |

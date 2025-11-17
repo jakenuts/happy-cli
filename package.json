@@ -1,6 +1,6 @@
 {
   "name": "happy-coder",
-  "version": "0.11.3-preview.3",
+  "version": "0.11.3-preview.4",
   "description": "Mobile and Web client for Claude Code and Codex",
   "author": "Kirill Dubovitskiy",
   "license": "MIT",
@@ -63,6 +63,7 @@
     "dev": "tsx src/index.ts",
     "dev:local-server": "yarn build && tsx --env-file .env.dev-local-server src/index.ts",
     "dev:integration-test-env": "yarn build && tsx --env-file .env.integration-test src/index.ts",
+    "prepare": "npm run build",
     "prepublishOnly": "yarn build && yarn test",
     "release": "release-it",
     "postinstall": "node -e \"try { require('./scripts/unpack-tools.cjs').unpackTools().catch(() => {}); } catch (e) { console.log('Note: Tool unpacking will happen on first use'); }\""

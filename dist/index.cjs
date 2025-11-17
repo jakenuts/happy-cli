@@ -1,8 +1,8 @@
 'use strict';
 
 require('chalk');
-require('./index-Csk-IZvi.cjs');
-require('./types-CvodC9My.cjs');
+require('./index-DjiImBx2.cjs');
+require('./types-yTZPvuva.cjs');
 require('zod');
 require('node:child_process');
 require('node:os');

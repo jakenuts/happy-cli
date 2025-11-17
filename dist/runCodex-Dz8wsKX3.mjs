@@ -1,13 +1,13 @@
 import { useStdout, useInput, Box, Text, render } from 'ink';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { l as logger, A as ApiClient, r as readSettings, p as projectPath, c as configuration, b as packageJson, d as delay } from './types-DlR__5_C.mjs';
+import { l as logger, A as ApiClient, r as readSettings, p as projectPath, c as configuration, b as packageJson, d as delay } from './types-B9QUFc40.mjs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { z } from 'zod';
 import { ElicitRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { execSync } from 'child_process';
 import { randomUUID } from 'node:crypto';
-import { i as initialMachineMetadata, n as notifyDaemonSessionStarted, M as MessageQueue2, h as hashObject, r as registerKillSessionHandler, a as MessageBuffer, s as startHappyServer, t as trimIdent, b as stopCaffeinate } from './index-R20HJuaG.mjs';
+import { i as initialMachineMetadata, n as notifyDaemonSessionStarted, M as MessageQueue2, h as hashObject, r as registerKillSessionHandler, a as MessageBuffer, s as startHappyServer, t as trimIdent, b as stopCaffeinate } from './index-D_vLWXIM.mjs';
 import os from 'node:os';
 import { resolve, join } from 'node:path';
 import fs from 'node:fs';

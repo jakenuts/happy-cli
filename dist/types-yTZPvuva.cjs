@@ -102,7 +102,7 @@ var scripts = {
 	build: "node scripts/build.mjs",
 	"build:dev": "shx rm -rf dist && npx tsc --noEmit && pkgroll",
 	test: "npm run build && tsx --env-file .env.integration-test node_modules/.bin/vitest run",
-	start: "npm run build && ./bin/happy.mjs",
+	start: "npm run build && ./bin/happy-next.mjs",
 	dev: "tsx src/index.ts",
 	"dev:local-server": "npm run build && tsx --env-file .env.dev-local-server src/index.ts",
 	"dev:integration-test-env": "npm run build && tsx --env-file .env.integration-test src/index.ts",
@@ -1021,7 +1021,7 @@ class RpcHandlerManager {
   }
 }
 
-const __dirname$1 = path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('types-CvodC9My.cjs', document.baseURI).href))));
+const __dirname$1 = path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('types-yTZPvuva.cjs', document.baseURI).href))));
 function projectPath() {
   const path$1 = path.resolve(__dirname$1, "..");
   return path$1;

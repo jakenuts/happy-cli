@@ -1,6 +1,6 @@
 'use strict';
 
-var types = require('./types-CxUnaIrU.cjs');
+var types = require('./types-CvodC9My.cjs');
 require('axios');
 require('chalk');
 require('fs');

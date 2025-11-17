@@ -1,24 +1,45 @@
-import axios from 'axios';
-import chalk from 'chalk';
-import { appendFileSync } from 'fs';
-import { existsSync, mkdirSync, constants, readFileSync, unlinkSync, writeFileSync, readdirSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join, basename } from 'node:path';
-import { readFile, open, stat, unlink, mkdir, writeFile, rename } from 'node:fs/promises';
-import * as z from 'zod';
-import { z as z$1 } from 'zod';
-import { randomBytes, createCipheriv, createDecipheriv, randomUUID } from 'node:crypto';
-import tweetnacl from 'tweetnacl';
-import { EventEmitter } from 'node:events';
-import { io } from 'socket.io-client';
-import { spawn, exec } from 'child_process';
-import { promisify } from 'util';
-import { readFile as readFile$1, stat as stat$1, writeFile as writeFile$1, readdir } from 'fs/promises';
-import { createHash } from 'crypto';
-import { dirname, resolve, join as join$1 } from 'path';
-import { fileURLToPath } from 'url';
-import { platform } from 'os';
-import { Expo } from 'expo-server-sdk';
+'use strict';
+
+var axios = require('axios');
+var chalk = require('chalk');
+var fs$1 = require('fs');
+var fs = require('node:fs');
+var os = require('node:os');
+var node_path = require('node:path');
+var promises = require('node:fs/promises');
+var z = require('zod');
+var node_crypto = require('node:crypto');
+var tweetnacl = require('tweetnacl');
+var node_events = require('node:events');
+var socket_ioClient = require('socket.io-client');
+var child_process = require('child_process');
+var util = require('util');
+var fs$2 = require('fs/promises');
+var crypto = require('crypto');
+var path = require('path');
+var url = require('url');
+var os$1 = require('os');
+var expoServerSdk = require('expo-server-sdk');
+
+var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
+function _interopNamespaceDefault(e) {
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+var z__namespace = /*#__PURE__*/_interopNamespaceDefault(z);
 
 var name = "happy-next";
 var version = "0.11.3-preview.7";
@@ -30,13 +51,13 @@ var homepage = "https://github.com/jakenuts/happy-cli";
 var bugs = "https://github.com/jakenuts/happy-cli/issues";
 var repository = "jakenuts/happy-cli";
 var bin = {
-	"happy-next": "./bin/happy.mjs",
-	"happy-next-mcp": "./bin/happy-mcp.mjs"
+	"happy-next": "./bin/happy-next.mjs",
+	"happy-next-mcp": "./bin/happy-next-mcp.mjs"
 };
 var main = "./dist/index.cjs";
-var module = "./dist/index.mjs";
+var module$1 = "./dist/index.mjs";
 var types = "./dist/index.d.cts";
-var exports = {
+var exports$1 = {
 	".": {
 		require: {
 			types: "./dist/index.d.cts",
@@ -157,9 +178,9 @@ var packageJson = {
 	repository: repository,
 	bin: bin,
 	main: main,
-	module: module,
+	module: module$1,
 	types: types,
-	exports: exports,
+	exports: exports$1,
 	files: files,
 	scripts: scripts,
 	dependencies: dependencies,
@@ -189,24 +210,24 @@ class Configuration {
     const args = process.argv.slice(2);
     this.isDaemonProcess = args.length >= 2 && args[0] === "daemon" && args[1] === "start-sync";
     if (process.env.HAPPY_HOME_DIR) {
-      const expandedPath = process.env.HAPPY_HOME_DIR.replace(/^~/, homedir());
+      const expandedPath = process.env.HAPPY_HOME_DIR.replace(/^~/, os.homedir());
       this.happyHomeDir = expandedPath;
     } else {
-      this.happyHomeDir = join(homedir(), ".happy");
+      this.happyHomeDir = node_path.join(os.homedir(), ".happy");
     }
-    this.logsDir = join(this.happyHomeDir, "logs");
-    this.settingsFile = join(this.happyHomeDir, "settings.json");
-    this.privateKeyFile = join(this.happyHomeDir, "access.key");
-    this.daemonStateFile = join(this.happyHomeDir, "daemon.state.json");
-    this.daemonLockFile = join(this.happyHomeDir, "daemon.state.json.lock");
+    this.logsDir = node_path.join(this.happyHomeDir, "logs");
+    this.settingsFile = node_path.join(this.happyHomeDir, "settings.json");
+    this.privateKeyFile = node_path.join(this.happyHomeDir, "access.key");
+    this.daemonStateFile = node_path.join(this.happyHomeDir, "daemon.state.json");
+    this.daemonLockFile = node_path.join(this.happyHomeDir, "daemon.state.json.lock");
     this.isExperimentalEnabled = ["true", "1", "yes"].includes(process.env.HAPPY_EXPERIMENTAL?.toLowerCase() || "");
     this.disableCaffeinate = ["true", "1", "yes"].includes(process.env.HAPPY_DISABLE_CAFFEINATE?.toLowerCase() || "");
     this.currentCliVersion = packageJson.version;
-    if (!existsSync(this.happyHomeDir)) {
-      mkdirSync(this.happyHomeDir, { recursive: true });
+    if (!fs.existsSync(this.happyHomeDir)) {
+      fs.mkdirSync(this.happyHomeDir, { recursive: true });
     }
-    if (!existsSync(this.logsDir)) {
-      mkdirSync(this.logsDir, { recursive: true });
+    if (!fs.existsSync(this.logsDir)) {
+      fs.mkdirSync(this.logsDir, { recursive: true });
     }
   }
 }
@@ -229,7 +250,7 @@ function decodeBase64(base64, variant = "base64") {
   return new Uint8Array(Buffer.from(base64, "base64"));
 }
 function getRandomBytes(size) {
-  return new Uint8Array(randomBytes(size));
+  return new Uint8Array(node_crypto.randomBytes(size));
 }
 function libsodiumEncryptForPublicKey(data, recipientPublicKey) {
   const ephemeralKeyPair = tweetnacl.box.keyPair();
@@ -260,7 +281,7 @@ function decryptLegacy(data, secret) {
 }
 function encryptWithDataKey(data, dataKey) {
   const nonce = getRandomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", dataKey, nonce);
+  const cipher = node_crypto.createCipheriv("aes-256-gcm", dataKey, nonce);
   const plaintext = new TextEncoder().encode(JSON.stringify(data));
   const encrypted = Buffer.concat([
     cipher.update(plaintext),
@@ -288,7 +309,7 @@ function decryptWithDataKey(bundle, dataKey) {
   const authTag = bundle.slice(bundle.length - 16);
   const ciphertext = bundle.slice(13, bundle.length - 16);
   try {
-    const decipher = createDecipheriv("aes-256-gcm", dataKey, nonce);
+    const decipher = node_crypto.createDecipheriv("aes-256-gcm", dataKey, nonce);
     decipher.setAuthTag(authTag);
     const decrypted = Buffer.concat([
       decipher.update(ciphertext),
@@ -318,11 +339,11 @@ const defaultSettings = {
   onboardingCompleted: false
 };
 async function readSettings() {
-  if (!existsSync(configuration.settingsFile)) {
+  if (!fs.existsSync(configuration.settingsFile)) {
     return { ...defaultSettings };
   }
   try {
-    const content = await readFile(configuration.settingsFile, "utf8");
+    const content = await promises.readFile(configuration.settingsFile, "utf8");
     return JSON.parse(content);
   } catch {
     return { ...defaultSettings };
@@ -338,16 +359,16 @@ async function updateSettings(updater) {
   let attempts = 0;
   while (attempts < MAX_LOCK_ATTEMPTS) {
     try {
-      fileHandle = await open(lockFile, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY);
+      fileHandle = await promises.open(lockFile, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY);
       break;
     } catch (err) {
       if (err.code === "EEXIST") {
         attempts++;
         await new Promise((resolve) => setTimeout(resolve, LOCK_RETRY_INTERVAL_MS));
         try {
-          const stats = await stat(lockFile);
+          const stats = await promises.stat(lockFile);
           if (Date.now() - stats.mtimeMs > STALE_LOCK_TIMEOUT_MS) {
-            await unlink(lockFile).catch(() => {
+            await promises.unlink(lockFile).catch(() => {
             });
           }
         } catch {
@@ -363,33 +384,33 @@ async function updateSettings(updater) {
   try {
     const current = await readSettings() || { ...defaultSettings };
     const updated = await updater(current);
-    if (!existsSync(configuration.happyHomeDir)) {
-      await mkdir(configuration.happyHomeDir, { recursive: true });
+    if (!fs.existsSync(configuration.happyHomeDir)) {
+      await promises.mkdir(configuration.happyHomeDir, { recursive: true });
     }
-    await writeFile(tmpFile, JSON.stringify(updated, null, 2));
-    await rename(tmpFile, configuration.settingsFile);
+    await promises.writeFile(tmpFile, JSON.stringify(updated, null, 2));
+    await promises.rename(tmpFile, configuration.settingsFile);
     return updated;
   } finally {
     await fileHandle.close();
-    await unlink(lockFile).catch(() => {
+    await promises.unlink(lockFile).catch(() => {
     });
   }
 }
-const credentialsSchema = z.object({
-  token: z.string(),
-  secret: z.string().base64().nullish(),
+const credentialsSchema = z__namespace.object({
+  token: z__namespace.string(),
+  secret: z__namespace.string().base64().nullish(),
   // Legacy
-  encryption: z.object({
-    publicKey: z.string().base64(),
-    machineKey: z.string().base64()
+  encryption: z__namespace.object({
+    publicKey: z__namespace.string().base64(),
+    machineKey: z__namespace.string().base64()
   }).nullish()
 });
 async function readCredentials() {
-  if (!existsSync(configuration.privateKeyFile)) {
+  if (!fs.existsSync(configuration.privateKeyFile)) {
     return null;
   }
   try {
-    const keyBase64 = await readFile(configuration.privateKeyFile, "utf8");
+    const keyBase64 = await promises.readFile(configuration.privateKeyFile, "utf8");
     const credentials = credentialsSchema.parse(JSON.parse(keyBase64));
     if (credentials.secret) {
       return {
@@ -415,26 +436,26 @@ async function readCredentials() {
   return null;
 }
 async function writeCredentialsLegacy(credentials) {
-  if (!existsSync(configuration.happyHomeDir)) {
-    await mkdir(configuration.happyHomeDir, { recursive: true });
+  if (!fs.existsSync(configuration.happyHomeDir)) {
+    await promises.mkdir(configuration.happyHomeDir, { recursive: true });
   }
-  await writeFile(configuration.privateKeyFile, JSON.stringify({
+  await promises.writeFile(configuration.privateKeyFile, JSON.stringify({
     secret: encodeBase64(credentials.secret),
     token: credentials.token
   }, null, 2));
 }
 async function writeCredentialsDataKey(credentials) {
-  if (!existsSync(configuration.happyHomeDir)) {
-    await mkdir(configuration.happyHomeDir, { recursive: true });
+  if (!fs.existsSync(configuration.happyHomeDir)) {
+    await promises.mkdir(configuration.happyHomeDir, { recursive: true });
   }
-  await writeFile(configuration.privateKeyFile, JSON.stringify({
+  await promises.writeFile(configuration.privateKeyFile, JSON.stringify({
     encryption: { publicKey: encodeBase64(credentials.publicKey), machineKey: encodeBase64(credentials.machineKey) },
     token: credentials.token
   }, null, 2));
 }
 async function clearCredentials() {
-  if (existsSync(configuration.privateKeyFile)) {
-    await unlink(configuration.privateKeyFile);
+  if (fs.existsSync(configuration.privateKeyFile)) {
+    await promises.unlink(configuration.privateKeyFile);
   }
 }
 async function clearMachineId() {
@@ -445,10 +466,10 @@ async function clearMachineId() {
 }
 async function readDaemonState() {
   try {
-    if (!existsSync(configuration.daemonStateFile)) {
+    if (!fs.existsSync(configuration.daemonStateFile)) {
       return null;
     }
-    const content = await readFile(configuration.daemonStateFile, "utf-8");
+    const content = await promises.readFile(configuration.daemonStateFile, "utf-8");
     return JSON.parse(content);
   } catch (error) {
     console.error(`[PERSISTENCE] Daemon state file corrupted: ${configuration.daemonStateFile}`, error);
@@ -456,15 +477,15 @@ async function readDaemonState() {
   }
 }
 function writeDaemonState(state) {
-  writeFileSync(configuration.daemonStateFile, JSON.stringify(state, null, 2), "utf-8");
+  fs.writeFileSync(configuration.daemonStateFile, JSON.stringify(state, null, 2), "utf-8");
 }
 async function clearDaemonState() {
-  if (existsSync(configuration.daemonStateFile)) {
-    await unlink(configuration.daemonStateFile);
+  if (fs.existsSync(configuration.daemonStateFile)) {
+    await promises.unlink(configuration.daemonStateFile);
   }
-  if (existsSync(configuration.daemonLockFile)) {
+  if (fs.existsSync(configuration.daemonLockFile)) {
     try {
-      await unlink(configuration.daemonLockFile);
+      await promises.unlink(configuration.daemonLockFile);
     } catch {
     }
   }
@@ -472,21 +493,21 @@ async function clearDaemonState() {
 async function acquireDaemonLock(maxAttempts = 5, delayIncrementMs = 200) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const fileHandle = await open(
+      const fileHandle = await promises.open(
         configuration.daemonLockFile,
-        constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY
+        fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY
       );
       await fileHandle.writeFile(String(process.pid));
       return fileHandle;
     } catch (error) {
       if (error.code === "EEXIST") {
         try {
-          const lockPid = readFileSync(configuration.daemonLockFile, "utf-8").trim();
+          const lockPid = fs.readFileSync(configuration.daemonLockFile, "utf-8").trim();
           if (lockPid && !isNaN(Number(lockPid))) {
             try {
               process.kill(Number(lockPid), 0);
             } catch {
-              unlinkSync(configuration.daemonLockFile);
+              fs.unlinkSync(configuration.daemonLockFile);
               continue;
             }
           }
@@ -508,8 +529,8 @@ async function releaseDaemonLock(lockHandle) {
   } catch {
   }
   try {
-    if (existsSync(configuration.daemonLockFile)) {
-      unlinkSync(configuration.daemonLockFile);
+    if (fs.existsSync(configuration.daemonLockFile)) {
+      fs.unlinkSync(configuration.daemonLockFile);
     }
   } catch {
   }
@@ -539,7 +560,7 @@ function createTimestampForLogEntry(date = /* @__PURE__ */ new Date()) {
 function getSessionLogPath() {
   const timestamp = createTimestampForFilename();
   const filename = configuration.isDaemonProcess ? `${timestamp}-daemon.log` : `${timestamp}.log`;
-  return join(configuration.logsDir, filename);
+  return node_path.join(configuration.logsDir, filename);
 }
 class Logger {
   constructor(logFilePath = getSessionLogPath()) {
@@ -664,7 +685,7 @@ class Logger {
       });
     }
     try {
-      appendFileSync(this.logFilePath, logLine);
+      fs$1.appendFileSync(this.logFilePath, logLine);
     } catch (appendError) {
       if (process.env.DEBUG) {
         console.error("[DEV MODE ONLY THROWING] Failed to append to log file:", appendError);
@@ -677,12 +698,12 @@ let logger = new Logger();
 async function listDaemonLogFiles(limit = 50) {
   try {
     const logsDir = configuration.logsDir;
-    if (!existsSync(logsDir)) {
+    if (!fs.existsSync(logsDir)) {
       return [];
     }
-    const logs = readdirSync(logsDir).filter((file) => file.endsWith("-daemon.log")).map((file) => {
-      const fullPath = join(logsDir, file);
-      const stats = statSync(fullPath);
+    const logs = fs.readdirSync(logsDir).filter((file) => file.endsWith("-daemon.log")).map((file) => {
+      const fullPath = node_path.join(logsDir, file);
+      const stats = fs.statSync(fullPath);
       return { file, path: fullPath, modified: stats.mtime };
     }).sort((a, b) => b.modified.getTime() - a.modified.getTime());
     try {
@@ -690,10 +711,10 @@ async function listDaemonLogFiles(limit = 50) {
       if (!state) {
         return logs;
       }
-      if (state.daemonLogPath && existsSync(state.daemonLogPath)) {
-        const stats = statSync(state.daemonLogPath);
+      if (state.daemonLogPath && fs.existsSync(state.daemonLogPath)) {
+        const stats = fs.statSync(state.daemonLogPath);
         const persisted = {
-          file: basename(state.daemonLogPath),
+          file: node_path.basename(state.daemonLogPath),
           path: state.daemonLogPath,
           modified: stats.mtime
         };
@@ -717,136 +738,136 @@ async function getLatestDaemonLog() {
   return latest || null;
 }
 
-const SessionMessageContentSchema = z$1.object({
-  c: z$1.string(),
+const SessionMessageContentSchema = z.z.object({
+  c: z.z.string(),
   // Base64 encoded encrypted content
-  t: z$1.literal("encrypted")
+  t: z.z.literal("encrypted")
 });
-const UpdateBodySchema = z$1.object({
-  message: z$1.object({
-    id: z$1.string(),
-    seq: z$1.number(),
+const UpdateBodySchema = z.z.object({
+  message: z.z.object({
+    id: z.z.string(),
+    seq: z.z.number(),
     content: SessionMessageContentSchema
   }),
-  sid: z$1.string(),
+  sid: z.z.string(),
   // Session ID
-  t: z$1.literal("new-message")
+  t: z.z.literal("new-message")
 });
-const UpdateSessionBodySchema = z$1.object({
-  t: z$1.literal("update-session"),
-  sid: z$1.string(),
-  metadata: z$1.object({
-    version: z$1.number(),
-    value: z$1.string()
+const UpdateSessionBodySchema = z.z.object({
+  t: z.z.literal("update-session"),
+  sid: z.z.string(),
+  metadata: z.z.object({
+    version: z.z.number(),
+    value: z.z.string()
   }).nullish(),
-  agentState: z$1.object({
-    version: z$1.number(),
-    value: z$1.string()
+  agentState: z.z.object({
+    version: z.z.number(),
+    value: z.z.string()
   }).nullish()
 });
-const UpdateMachineBodySchema = z$1.object({
-  t: z$1.literal("update-machine"),
-  machineId: z$1.string(),
-  metadata: z$1.object({
-    version: z$1.number(),
-    value: z$1.string()
+const UpdateMachineBodySchema = z.z.object({
+  t: z.z.literal("update-machine"),
+  machineId: z.z.string(),
+  metadata: z.z.object({
+    version: z.z.number(),
+    value: z.z.string()
   }).nullish(),
-  daemonState: z$1.object({
-    version: z$1.number(),
-    value: z$1.string()
+  daemonState: z.z.object({
+    version: z.z.number(),
+    value: z.z.string()
   }).nullish()
 });
-z$1.object({
-  id: z$1.string(),
-  seq: z$1.number(),
-  body: z$1.union([
+z.z.object({
+  id: z.z.string(),
+  seq: z.z.number(),
+  body: z.z.union([
     UpdateBodySchema,
     UpdateSessionBodySchema,
     UpdateMachineBodySchema
   ]),
-  createdAt: z$1.number()
+  createdAt: z.z.number()
 });
-z$1.object({
-  host: z$1.string(),
-  platform: z$1.string(),
-  happyCliVersion: z$1.string(),
-  homeDir: z$1.string(),
-  happyHomeDir: z$1.string(),
-  happyLibDir: z$1.string()
+z.z.object({
+  host: z.z.string(),
+  platform: z.z.string(),
+  happyCliVersion: z.z.string(),
+  homeDir: z.z.string(),
+  happyHomeDir: z.z.string(),
+  happyLibDir: z.z.string()
 });
-z$1.object({
-  status: z$1.union([
-    z$1.enum(["running", "shutting-down"]),
-    z$1.string()
+z.z.object({
+  status: z.z.union([
+    z.z.enum(["running", "shutting-down"]),
+    z.z.string()
     // Forward compatibility
   ]),
-  pid: z$1.number().optional(),
-  httpPort: z$1.number().optional(),
-  startedAt: z$1.number().optional(),
-  shutdownRequestedAt: z$1.number().optional(),
-  shutdownSource: z$1.union([
-    z$1.enum(["mobile-app", "cli", "os-signal", "unknown"]),
-    z$1.string()
+  pid: z.z.number().optional(),
+  httpPort: z.z.number().optional(),
+  startedAt: z.z.number().optional(),
+  shutdownRequestedAt: z.z.number().optional(),
+  shutdownSource: z.z.union([
+    z.z.enum(["mobile-app", "cli", "os-signal", "unknown"]),
+    z.z.string()
     // Forward compatibility
   ]).optional()
 });
-z$1.object({
+z.z.object({
   content: SessionMessageContentSchema,
-  createdAt: z$1.number(),
-  id: z$1.string(),
-  seq: z$1.number(),
-  updatedAt: z$1.number()
+  createdAt: z.z.number(),
+  id: z.z.string(),
+  seq: z.z.number(),
+  updatedAt: z.z.number()
 });
-const MessageMetaSchema = z$1.object({
-  sentFrom: z$1.string().optional(),
+const MessageMetaSchema = z.z.object({
+  sentFrom: z.z.string().optional(),
   // Source identifier
-  permissionMode: z$1.string().optional(),
+  permissionMode: z.z.string().optional(),
   // Permission mode for this message
-  model: z$1.string().nullable().optional(),
+  model: z.z.string().nullable().optional(),
   // Model name for this message (null = reset)
-  fallbackModel: z$1.string().nullable().optional(),
+  fallbackModel: z.z.string().nullable().optional(),
   // Fallback model for this message (null = reset)
-  customSystemPrompt: z$1.string().nullable().optional(),
+  customSystemPrompt: z.z.string().nullable().optional(),
   // Custom system prompt for this message (null = reset)
-  appendSystemPrompt: z$1.string().nullable().optional(),
+  appendSystemPrompt: z.z.string().nullable().optional(),
   // Append to system prompt for this message (null = reset)
-  allowedTools: z$1.array(z$1.string()).nullable().optional(),
+  allowedTools: z.z.array(z.z.string()).nullable().optional(),
   // Allowed tools for this message (null = reset)
-  disallowedTools: z$1.array(z$1.string()).nullable().optional()
+  disallowedTools: z.z.array(z.z.string()).nullable().optional()
   // Disallowed tools for this message (null = reset)
 });
-z$1.object({
-  session: z$1.object({
-    id: z$1.string(),
-    tag: z$1.string(),
-    seq: z$1.number(),
-    createdAt: z$1.number(),
-    updatedAt: z$1.number(),
-    metadata: z$1.string(),
-    metadataVersion: z$1.number(),
-    agentState: z$1.string().nullable(),
-    agentStateVersion: z$1.number()
+z.z.object({
+  session: z.z.object({
+    id: z.z.string(),
+    tag: z.z.string(),
+    seq: z.z.number(),
+    createdAt: z.z.number(),
+    updatedAt: z.z.number(),
+    metadata: z.z.string(),
+    metadataVersion: z.z.number(),
+    agentState: z.z.string().nullable(),
+    agentStateVersion: z.z.number()
   })
 });
-const UserMessageSchema = z$1.object({
-  role: z$1.literal("user"),
-  content: z$1.object({
-    type: z$1.literal("text"),
-    text: z$1.string()
+const UserMessageSchema = z.z.object({
+  role: z.z.literal("user"),
+  content: z.z.object({
+    type: z.z.literal("text"),
+    text: z.z.string()
   }),
-  localKey: z$1.string().optional(),
+  localKey: z.z.string().optional(),
   // Mobile messages include this
   meta: MessageMetaSchema.optional()
 });
-const AgentMessageSchema = z$1.object({
-  role: z$1.literal("agent"),
-  content: z$1.object({
-    type: z$1.literal("output"),
-    data: z$1.any()
+const AgentMessageSchema = z.z.object({
+  role: z.z.literal("agent"),
+  content: z.z.object({
+    type: z.z.literal("output"),
+    data: z.z.any()
   }),
   meta: MessageMetaSchema.optional()
 });
-z$1.union([UserMessageSchema, AgentMessageSchema]);
+z.z.union([UserMessageSchema, AgentMessageSchema]);
 
 async function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -1000,16 +1021,16 @@ class RpcHandlerManager {
   }
 }
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname$1 = path.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('types-CvodC9My.cjs', document.baseURI).href))));
 function projectPath() {
-  const path = resolve(__dirname, "..");
-  return path;
+  const path$1 = path.resolve(__dirname$1, "..");
+  return path$1;
 }
 
 function run$1(args, options) {
-  const RUNNER_PATH = resolve(join$1(projectPath(), "scripts", "ripgrep_launcher.cjs"));
+  const RUNNER_PATH = path.resolve(path.join(projectPath(), "scripts", "ripgrep_launcher.cjs"));
   return new Promise((resolve2, reject) => {
-    const child = spawn("node", [RUNNER_PATH, JSON.stringify(args)], {
+    const child = child_process.spawn("node", [RUNNER_PATH, JSON.stringify(args)], {
       stdio: ["pipe", "pipe", "pipe"],
       cwd: options?.cwd
     });
@@ -1035,14 +1056,14 @@ function run$1(args, options) {
 }
 
 function getBinaryPath() {
-  const platformName = platform();
+  const platformName = os$1.platform();
   const binaryName = platformName === "win32" ? "difft.exe" : "difft";
-  return resolve(join$1(projectPath(), "tools", "unpacked", binaryName));
+  return path.resolve(path.join(projectPath(), "tools", "unpacked", binaryName));
 }
 function run(args, options) {
   const binaryPath = getBinaryPath();
   return new Promise((resolve2, reject) => {
-    const child = spawn(binaryPath, args, {
+    const child = child_process.spawn(binaryPath, args, {
       stdio: ["pipe", "pipe", "pipe"],
       cwd: options?.cwd,
       env: {
@@ -1072,7 +1093,7 @@ function run(args, options) {
   });
 }
 
-const execAsync = promisify(exec);
+const execAsync = util.promisify(child_process.exec);
 function registerCommonHandlers(rpcHandlerManager) {
   rpcHandlerManager.registerHandler("bash", async (data) => {
     logger.debug("Shell command request:", data.command);
@@ -1112,7 +1133,7 @@ function registerCommonHandlers(rpcHandlerManager) {
   rpcHandlerManager.registerHandler("readFile", async (data) => {
     logger.debug("Read file request:", data.path);
     try {
-      const buffer = await readFile$1(data.path);
+      const buffer = await fs$2.readFile(data.path);
       const content = buffer.toString("base64");
       return { success: true, content };
     } catch (error) {
@@ -1125,8 +1146,8 @@ function registerCommonHandlers(rpcHandlerManager) {
     try {
       if (data.expectedHash !== null && data.expectedHash !== void 0) {
         try {
-          const existingBuffer = await readFile$1(data.path);
-          const existingHash = createHash("sha256").update(existingBuffer).digest("hex");
+          const existingBuffer = await fs$2.readFile(data.path);
+          const existingHash = crypto.createHash("sha256").update(existingBuffer).digest("hex");
           if (existingHash !== data.expectedHash) {
             return {
               success: false,
@@ -1145,7 +1166,7 @@ function registerCommonHandlers(rpcHandlerManager) {
         }
       } else {
         try {
-          await stat$1(data.path);
+          await fs$2.stat(data.path);
           return {
             success: false,
             error: "File already exists but was expected to be new"
@@ -1158,8 +1179,8 @@ function registerCommonHandlers(rpcHandlerManager) {
         }
       }
       const buffer = Buffer.from(data.content, "base64");
-      await writeFile$1(data.path, buffer);
-      const hash = createHash("sha256").update(buffer).digest("hex");
+      await fs$2.writeFile(data.path, buffer);
+      const hash = crypto.createHash("sha256").update(buffer).digest("hex");
       return { success: true, hash };
     } catch (error) {
       logger.debug("Failed to write file:", error);
@@ -1169,10 +1190,10 @@ function registerCommonHandlers(rpcHandlerManager) {
   rpcHandlerManager.registerHandler("listDirectory", async (data) => {
     logger.debug("List directory request:", data.path);
     try {
-      const entries = await readdir(data.path, { withFileTypes: true });
+      const entries = await fs$2.readdir(data.path, { withFileTypes: true });
       const directoryEntries = await Promise.all(
         entries.map(async (entry) => {
-          const fullPath = join$1(data.path, entry.name);
+          const fullPath = path.join(data.path, entry.name);
           let type = "other";
           let size;
           let modified;
@@ -1182,7 +1203,7 @@ function registerCommonHandlers(rpcHandlerManager) {
             type = "file";
           }
           try {
-            const stats = await stat$1(fullPath);
+            const stats = await fs$2.stat(fullPath);
             size = stats.size;
             modified = stats.mtime.getTime();
           } catch (error) {
@@ -1209,26 +1230,26 @@ function registerCommonHandlers(rpcHandlerManager) {
   });
   rpcHandlerManager.registerHandler("getDirectoryTree", async (data) => {
     logger.debug("Get directory tree request:", data.path, "maxDepth:", data.maxDepth);
-    async function buildTree(path, name, currentDepth) {
+    async function buildTree(path$1, name, currentDepth) {
       try {
-        const stats = await stat$1(path);
+        const stats = await fs$2.stat(path$1);
         const node = {
           name,
-          path,
+          path: path$1,
           type: stats.isDirectory() ? "directory" : "file",
           size: stats.size,
           modified: stats.mtime.getTime()
         };
         if (stats.isDirectory() && currentDepth < data.maxDepth) {
-          const entries = await readdir(path, { withFileTypes: true });
+          const entries = await fs$2.readdir(path$1, { withFileTypes: true });
           const children = [];
           await Promise.all(
             entries.map(async (entry) => {
               if (entry.isSymbolicLink()) {
-                logger.debug(`Skipping symlink: ${join$1(path, entry.name)}`);
+                logger.debug(`Skipping symlink: ${path.join(path$1, entry.name)}`);
                 return;
               }
-              const childPath = join$1(path, entry.name);
+              const childPath = path.join(path$1, entry.name);
               const childNode = await buildTree(childPath, entry.name, currentDepth + 1);
               if (childNode) {
                 children.push(childNode);
@@ -1244,7 +1265,7 @@ function registerCommonHandlers(rpcHandlerManager) {
         }
         return node;
       } catch (error) {
-        logger.debug(`Failed to process ${path}:`, error instanceof Error ? error.message : String(error));
+        logger.debug(`Failed to process ${path$1}:`, error instanceof Error ? error.message : String(error));
         return null;
       }
     }
@@ -1301,7 +1322,7 @@ function registerCommonHandlers(rpcHandlerManager) {
   });
 }
 
-class ApiSessionClient extends EventEmitter {
+class ApiSessionClient extends node_events.EventEmitter {
   token;
   sessionId;
   metadata;
@@ -1335,7 +1356,7 @@ class ApiSessionClient extends EventEmitter {
       logger: (msg, data) => logger.debug(msg, data)
     });
     registerCommonHandlers(this.rpcHandlerManager);
-    this.socket = io(configuration.serverUrl, {
+    this.socket = socket_ioClient.io(configuration.serverUrl, {
       auth: {
         token: this.token,
         clientType: "session-scoped",
@@ -1522,7 +1543,7 @@ class ApiSessionClient extends EventEmitter {
     let content = {
       role: "agent",
       content: {
-        id: id ?? randomUUID(),
+        id: id ?? node_crypto.randomUUID(),
         type: "event",
         data: event
       }
@@ -1760,7 +1781,7 @@ class ApiMachineClient {
   connect() {
     const serverUrl = configuration.serverUrl.replace(/^http/, "ws");
     logger.debug(`[API MACHINE] Connecting to ${serverUrl}`);
-    this.socket = io(serverUrl, {
+    this.socket = socket_ioClient.io(serverUrl, {
       transports: ["websocket"],
       auth: {
         token: this.token,
@@ -1855,7 +1876,7 @@ class PushNotificationClient {
   constructor(token, baseUrl = "https://api.cluster-fluster.com") {
     this.token = token;
     this.baseUrl = baseUrl;
-    this.expo = new Expo();
+    this.expo = new expoServerSdk.Expo();
   }
   /**
    * Fetch all push tokens for the authenticated user
@@ -1889,9 +1910,9 @@ class PushNotificationClient {
     logger.debug(`Sending ${messages.length} push notifications`);
     const validMessages = messages.filter((message) => {
       if (Array.isArray(message.to)) {
-        return message.to.every((token) => Expo.isExpoPushToken(token));
+        return message.to.every((token) => expoServerSdk.Expo.isExpoPushToken(token));
       }
-      return Expo.isExpoPushToken(message.to);
+      return expoServerSdk.Expo.isExpoPushToken(message.to);
     });
     if (validMessages.length === 0) {
       logger.debug("No valid Expo push tokens found");
@@ -2131,52 +2152,77 @@ class ApiClient {
   }
 }
 
-const UsageSchema = z$1.object({
-  input_tokens: z$1.number().int().nonnegative(),
-  cache_creation_input_tokens: z$1.number().int().nonnegative().optional(),
-  cache_read_input_tokens: z$1.number().int().nonnegative().optional(),
-  output_tokens: z$1.number().int().nonnegative(),
-  service_tier: z$1.string().optional()
+const UsageSchema = z.z.object({
+  input_tokens: z.z.number().int().nonnegative(),
+  cache_creation_input_tokens: z.z.number().int().nonnegative().optional(),
+  cache_read_input_tokens: z.z.number().int().nonnegative().optional(),
+  output_tokens: z.z.number().int().nonnegative(),
+  service_tier: z.z.string().optional()
 }).passthrough();
-const RawJSONLinesSchema = z$1.discriminatedUnion("type", [
+const RawJSONLinesSchema = z.z.discriminatedUnion("type", [
   // User message - validates uuid and message.content
-  z$1.object({
-    type: z$1.literal("user"),
-    isSidechain: z$1.boolean().optional(),
-    isMeta: z$1.boolean().optional(),
-    uuid: z$1.string(),
+  z.z.object({
+    type: z.z.literal("user"),
+    isSidechain: z.z.boolean().optional(),
+    isMeta: z.z.boolean().optional(),
+    uuid: z.z.string(),
     // Used in getMessageKey()
-    message: z$1.object({
-      content: z$1.union([z$1.string(), z$1.any()])
+    message: z.z.object({
+      content: z.z.union([z.z.string(), z.z.any()])
       // Used in sessionScanner.ts
     }).passthrough()
   }).passthrough(),
   // Assistant message - validates message object with usage and content
-  z$1.object({
-    uuid: z$1.string(),
-    type: z$1.literal("assistant"),
-    message: z$1.object({
+  z.z.object({
+    uuid: z.z.string(),
+    type: z.z.literal("assistant"),
+    message: z.z.object({
       // Entire message used in getMessageKey()
       usage: UsageSchema.optional(),
       // Used in apiSession.ts
-      content: z$1.any()
+      content: z.z.any()
       // Used in tests
     }).passthrough()
   }).passthrough(),
   // Summary message - validates summary and leafUuid
-  z$1.object({
-    type: z$1.literal("summary"),
-    summary: z$1.string(),
+  z.z.object({
+    type: z.z.literal("summary"),
+    summary: z.z.string(),
     // Used in apiSession.ts
-    leafUuid: z$1.string()
+    leafUuid: z.z.string()
     // Used in getMessageKey()
   }).passthrough(),
   // System message - validates uuid
-  z$1.object({
-    type: z$1.literal("system"),
-    uuid: z$1.string()
+  z.z.object({
+    type: z.z.literal("system"),
+    uuid: z.z.string()
     // Used in getMessageKey()
   }).passthrough()
 ]);
 
-export { ApiClient as A, RawJSONLinesSchema as R, ApiSessionClient as a, packageJson as b, configuration as c, delay as d, backoff as e, AsyncLock as f, readDaemonState as g, clearDaemonState as h, readCredentials as i, encodeBase64 as j, encodeBase64Url as k, logger as l, decodeBase64 as m, writeCredentialsDataKey as n, acquireDaemonLock as o, projectPath as p, writeDaemonState as q, readSettings as r, releaseDaemonLock as s, clearCredentials as t, updateSettings as u, clearMachineId as v, writeCredentialsLegacy as w, getLatestDaemonLog as x };
+exports.ApiClient = ApiClient;
+exports.ApiSessionClient = ApiSessionClient;
+exports.AsyncLock = AsyncLock;
+exports.RawJSONLinesSchema = RawJSONLinesSchema;
+exports.acquireDaemonLock = acquireDaemonLock;
+exports.backoff = backoff;
+exports.clearCredentials = clearCredentials;
+exports.clearDaemonState = clearDaemonState;
+exports.clearMachineId = clearMachineId;
+exports.configuration = configuration;
+exports.decodeBase64 = decodeBase64;
+exports.delay = delay;
+exports.encodeBase64 = encodeBase64;
+exports.encodeBase64Url = encodeBase64Url;
+exports.getLatestDaemonLog = getLatestDaemonLog;
+exports.logger = logger;
+exports.packageJson = packageJson;
+exports.projectPath = projectPath;
+exports.readCredentials = readCredentials;
+exports.readDaemonState = readDaemonState;
+exports.readSettings = readSettings;
+exports.releaseDaemonLock = releaseDaemonLock;
+exports.updateSettings = updateSettings;
+exports.writeCredentialsDataKey = writeCredentialsDataKey;
+exports.writeCredentialsLegacy = writeCredentialsLegacy;
+exports.writeDaemonState = writeDaemonState;

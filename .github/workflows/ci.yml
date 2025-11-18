@@ -48,12 +48,12 @@ jobs:
       - name: Check bin files exist
         shell: bash
         run: |
-          if [ ! -f "bin/happy.mjs" ]; then
-            echo "Error: bin/happy.mjs not found"
+          if [ ! -f "bin/happy-next.mjs" ]; then
+            echo "Error: bin/happy-next.mjs not found"
             exit 1
           fi
-          if [ ! -f "bin/happy-mcp.mjs" ]; then
-            echo "Error: bin/happy-mcp.mjs not found"
+          if [ ! -f "bin/happy-next-mcp.mjs" ]; then
+            echo "Error: bin/happy-next-mcp.mjs not found"
             exit 1
           fi
           echo "✓ Bin files exist"

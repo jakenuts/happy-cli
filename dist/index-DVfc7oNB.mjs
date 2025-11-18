@@ -5794,7 +5794,7 @@ async function handleConnectVendor(vendor, displayName) {
     return;
   } else if (subcommand === "codex") {
     try {
-      const { runCodex } = await import('./runCodex-Dz8wsKX3.mjs');
+      const { runCodex } = await import('./runCodex-IURENGT9.mjs');
       let startedBy = void 0;
       for (let i = 1; i < args.length; i++) {
         if (args[i] === "--started-by") {
@@ -6102,4 +6102,4 @@ ${chalk.bold("Examples:")}
   }
 }
 
-export { MessageQueue2 as M, MessageBuffer as a, stopCaffeinate as b, hashObject as h, initialMachineMetadata as i, notifyDaemonSessionStarted as n, registerKillSessionHandler as r, startHappyServer as s, trimIdent as t };
+export { MessageQueue2 as M, MessageBuffer as a, stopCaffeinate as b, hashObject as h, initialMachineMetadata as i, notifyDaemonSessionStarted as n, registerKillSessionHandler as r, startHappyServer as s };

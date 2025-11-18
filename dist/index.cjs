@@ -1,7 +1,7 @@
 'use strict';
 
 require('chalk');
-require('./index-DjiImBx2.cjs');
+require('./index-Dutro7YC.cjs');
 require('./types-yTZPvuva.cjs');
 require('zod');
 require('node:child_process');

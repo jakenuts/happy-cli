@@ -21,6 +21,7 @@ import fs from 'node:fs';
 import { startHappyServer } from '@/claude/utils/startHappyServer';
 import { MessageBuffer } from "@/ui/ink/messageBuffer";
 import { CodexDisplay } from "@/ui/ink/CodexDisplay";
+import { trimIdent } from "@/utils/trimIdent";
 import type { CodexSessionConfig } from './types';
 import { notifyDaemonSessionStarted } from "@/daemon/controlClient";
 import { registerKillSessionHandler } from "@/claude/registerKillSessionHandler";
@@ -616,6 +617,7 @@ export async function runCodex(opts: {
             args: ['--url', happyServer.url]
         }
     } as const;
+    let isFirstMessage = true;
 
     try {
         logger.debug('[codex]: client.connect begin');
@@ -723,8 +725,18 @@ export async function runCodex(opts: {
                 })();
 
                 if (!wasCreated) {
+                    // On first message, append instruction to set title AFTER responding
+                    const prompt = isFirstMessage
+                        ? message.message + '\n\n' + trimIdent(`
+                            After you've completed your response to the above request, call the function
+                            functions.happy__change_title with a concise title (2-5 words) that describes
+                            the task or conversation topic. If the conversation topic changes significantly
+                            in future messages, you can call this function again to update the title.
+                        `)
+                        : message.message;
+
                     const startConfig: CodexSessionConfig = {
-                        prompt: message.message,
+                        prompt,
                         sandbox,
                         'approval-policy': approvalPolicy,
                         config: { mcp_servers: mcpServers }
@@ -763,6 +775,7 @@ export async function runCodex(opts: {
                         { signal: abortController.signal }
                     );
                     wasCreated = true;
+                    isFirstMessage = false;
                 } else {
                     const response = await client.continueSession(
                         message.message,

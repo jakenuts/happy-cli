@@ -9,7 +9,7 @@ var z = require('zod');
 var types_js = require('@modelcontextprotocol/sdk/types.js');
 var child_process = require('child_process');
 var node_crypto = require('node:crypto');
-var index = require('./index-Dutro7YC.cjs');
+var index = require('./index-CrJtylKA.cjs');
 var os = require('node:os');
 var node_path = require('node:path');
 var fs = require('node:fs');
@@ -1264,6 +1264,7 @@ async function runCodex(opts) {
       args: ["--url", happyServer.url]
     }
   };
+  let isFirstMessage = true;
   try {
     types.logger.debug("[codex]: client.connect begin");
     await client.connect();
@@ -1358,8 +1359,14 @@ async function runCodex(opts) {
           }
         })();
         if (!wasCreated) {
+          const prompt = isFirstMessage ? message.message + "\n\n" + index.trimIdent(`
+                            After you've completed your response to the above request, call the function
+                            functions.happy__change_title with a concise title (2-5 words) that describes
+                            the task or conversation topic. If the conversation topic changes significantly
+                            in future messages, you can call this function again to update the title.
+                        `) : message.message;
           const startConfig = {
-            prompt: message.message,
+            prompt,
             sandbox,
             "approval-policy": approvalPolicy,
             config: { mcp_servers: mcpServers }
@@ -1389,6 +1396,7 @@ async function runCodex(opts) {
             { signal: abortController.signal }
           );
           wasCreated = true;
+          isFirstMessage = false;
         } else {
           const response2 = await client.continueSession(
             message.message,

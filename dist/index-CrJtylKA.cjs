@@ -981,7 +981,7 @@ class AbortError extends Error {
   }
 }
 
-const __filename$1 = node_url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index-Dutro7YC.cjs', document.baseURI).href)));
+const __filename$1 = node_url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index-CrJtylKA.cjs', document.baseURI).href)));
 const __dirname$1 = node_path.join(__filename$1, "..");
 function getDefaultClaudeCodePath() {
   return node_path.join(__dirname$1, "..", "..", "..", "node_modules", "@anthropic-ai", "claude-code", "cli.js");
@@ -5816,7 +5816,7 @@ async function handleConnectVendor(vendor, displayName) {
     return;
   } else if (subcommand === "codex") {
     try {
-      const { runCodex } = await Promise.resolve().then(function () { return require('./runCodex-BchQlOW3.cjs'); });
+      const { runCodex } = await Promise.resolve().then(function () { return require('./runCodex-C1p1bnCM.cjs'); });
       let startedBy = void 0;
       for (let i = 1; i < args.length; i++) {
         if (args[i] === "--started-by") {
@@ -6132,3 +6132,4 @@ exports.notifyDaemonSessionStarted = notifyDaemonSessionStarted;
 exports.registerKillSessionHandler = registerKillSessionHandler;
 exports.startHappyServer = startHappyServer;
 exports.stopCaffeinate = stopCaffeinate;
+exports.trimIdent = trimIdent;

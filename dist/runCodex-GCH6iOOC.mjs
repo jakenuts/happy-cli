@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { ElicitRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { execSync } from 'child_process';
 import { randomUUID } from 'node:crypto';
-import { i as initialMachineMetadata, n as notifyDaemonSessionStarted, M as MessageQueue2, h as hashObject, r as registerKillSessionHandler, a as MessageBuffer, s as startHappyServer, b as stopCaffeinate } from './index-DVfc7oNB.mjs';
+import { i as initialMachineMetadata, n as notifyDaemonSessionStarted, M as MessageQueue2, h as hashObject, r as registerKillSessionHandler, a as MessageBuffer, s as startHappyServer, t as trimIdent, b as stopCaffeinate } from './index-JRrBjSq0.mjs';
 import os from 'node:os';
 import { resolve, join } from 'node:path';
 import fs from 'node:fs';
@@ -1262,6 +1262,7 @@ async function runCodex(opts) {
       args: ["--url", happyServer.url]
     }
   };
+  let isFirstMessage = true;
   try {
     logger.debug("[codex]: client.connect begin");
     await client.connect();
@@ -1356,8 +1357,14 @@ async function runCodex(opts) {
           }
         })();
         if (!wasCreated) {
+          const prompt = isFirstMessage ? message.message + "\n\n" + trimIdent(`
+                            After you've completed your response to the above request, call the function
+                            functions.happy__change_title with a concise title (2-5 words) that describes
+                            the task or conversation topic. If the conversation topic changes significantly
+                            in future messages, you can call this function again to update the title.
+                        `) : message.message;
           const startConfig = {
-            prompt: message.message,
+            prompt,
             sandbox,
             "approval-policy": approvalPolicy,
             config: { mcp_servers: mcpServers }
@@ -1387,6 +1394,7 @@ async function runCodex(opts) {
             { signal: abortController.signal }
           );
           wasCreated = true;
+          isFirstMessage = false;
         } else {
           const response2 = await client.continueSession(
             message.message,

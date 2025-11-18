@@ -4,11 +4,34 @@ This document explains how the automated publishing system works for `happy-next
 
 ## Overview
 
-The package is automatically published to npm when the version changes. This solves all the installation issues with GitHub installs and NVM.
+**Every push to the preview branch automatically publishes to npm!** No manual steps needed.
+
+For stable releases, the package is automatically published to npm when the version changes.
 
 ## Automated Workflows
 
-### 1. Version Bumping (`bump-version.yml`)
+### 1. Automatic Preview Publishing (`publish-preview.yml`) ⭐ NEW
+
+**Triggers on every push to preview branches!**
+
+**What it does:**
+- Generates unique version: `<version>-preview.<timestamp>.<commit-hash>`
+- Installs dependencies
+- Runs build and tests
+- Publishes to npm with `@preview` tag
+
+**Installation:**
+```bash
+# Get the latest preview (recommended)
+npm install -g happy-next@preview
+
+# Or install a specific preview version
+npm install -g happy-next@0.11.3-preview.20251118120000.abc1234
+```
+
+**No manual intervention needed!** Just push your changes and wait 2-3 minutes.
+
+### 2. Version Bumping (`bump-version.yml`)
 
 Manually trigger this workflow to bump the version:
 
@@ -25,7 +48,7 @@ Manually trigger this workflow to bump the version:
 - Creates and pushes git tag (`v0.11.3-preview.8`, etc.)
 - Updates `latest-preview` tag for prerelease versions
 
-### 2. Publishing to NPM (`publish-npm.yml`)
+### 3. Publishing to NPM (`publish-npm.yml`)
 
 Automatically triggers when:
 - Version in `package.json` changes on `main` branch
@@ -38,12 +61,29 @@ Automatically triggers when:
 - Creates GitHub release
 - Adds install instructions to release notes
 
+**Note:** For preview/development work, use the automatic preview publishing instead!
+
 ## Publishing a New Version
 
-### For Preview Releases
+### For Preview Releases (Automatic!) ⭐
+
+**Just push your changes!** That's it.
 
 ```bash
-# Option 1: Use GitHub Actions (Recommended)
+git add .
+git commit -m "your changes"
+git push
+# Wait 2-3 minutes - your changes are now published to npm!
+```
+
+Install with: `npm install -g happy-next@preview`
+
+### For Named Preview Releases (Manual)
+
+If you want a specific preview version number:
+
+```bash
+# Option 1: Use GitHub Actions
 # Go to Actions → Bump Version → Run workflow → Select "prerelease"
 
 # Option 2: Manually

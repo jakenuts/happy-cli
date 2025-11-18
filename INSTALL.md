@@ -5,7 +5,7 @@
 Install the latest preview from GitHub:
 
 ```powershell
-npm install -g github:jakenuts/happy-cli#latest-preview
+npm install -g happy-next
 ```
 
 This gives you:

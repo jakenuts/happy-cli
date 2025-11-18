@@ -9,10 +9,16 @@
 ## Quick Install
 
 ```bash
-npm install -g github:jakenuts/happy-cli#latest-preview
+npm install -g happy-next
 ```
 
 This installs as **`happy-next`** so it won't conflict with the stable `happy` version.
+
+**Preview/Development versions:**
+```bash
+npm install -g happy-next@preview  # Latest preview
+npm install -g github:jakenuts/happy-cli#latest-preview  # From GitHub
+```
 
 📖 **[Complete Installation Guide](./INSTALL.md)** - Side-by-side setup, troubleshooting, etc.
 

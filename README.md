@@ -14,11 +14,12 @@ npm install -g happy-next
 
 This installs as **`happy-next`** so it won't conflict with the stable `happy` version.
 
-**Preview/Development versions:**
+**Preview versions (auto-published on every commit):**
 ```bash
-npm install -g happy-next@preview  # Latest preview
-npm install -g github:jakenuts/happy-cli#latest-preview  # From GitHub
+npm install -g happy-next@preview  # Latest preview - auto-updates on every push!
 ```
+
+Every push to the preview branch automatically publishes to npm with a unique version like `1.0.0-preview.20251118120000.abc1234`
 
 📖 **[Complete Installation Guide](./INSTALL.md)** - Side-by-side setup, troubleshooting, etc.
 
@@ -31,12 +32,11 @@ npm install -g github:jakenuts/happy-cli#latest-preview  # From GitHub
 - Permission handling with timeouts
 - Improved error recovery and reconnection logic
 
-### 📦 Installation Improvements
-- GitHub install support (no npm publish needed)
+### 📦 Installation & Publishing Improvements
+- **Automatic preview publishing** - Every push publishes to npm as `@preview` tag
 - Automatic dist building via GitHub Actions on every commit
-- Resilient postinstall script handling
-- Better missing dependency recovery
 - Cross-platform CI testing (Windows, macOS, Linux)
+- No manual publishing needed - just push your changes!
 
 ### 🔄 Upstream Sync
 - Automated daily sync from upstream (slopus/happy-cli)
